@@ -3,7 +3,7 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title>WOSA/XFS</title>
+	<title>wosa/xfs</title>
 	<style type="text/css">
 		< !--
 
@@ -555,12 +555,11 @@
 		}
 
 		.desktop_icon {
-			width: 180px;
+			width: 86px;
 			height: 88px;
 			cursor: pointer;
-			/* margin-left: -1000px; */
+			margin-left: -1000px;
 			text-align: center;
-			margin-right: 100px;
 		}
 
 		.desktop_icon span {
@@ -579,17 +578,16 @@
 		}
 
 		.desktop_icon .text {
-			/* display: inline-block; */
+			display: inline-block;
 			width: auto;
 			height: 22px;
 			line-height: 22px;
 			text-align: center;
 			color: #fff;
-			/* background: url(images/iconTextbg.png) no-repeat left center; */
+			background: url(images/iconTextbg.png) no-repeat left center;
 			position: relative;
-			/* padding-left: 10px; */
-			/* margin-right: 10px; */
-			word-break: break-all;
+			padding-left: 10px;
+			margin-right: 10px;
 		}
 
 		.desktop_icon .right_cron {
@@ -598,7 +596,7 @@
 			position: absolute;
 			right: -10px;
 			top: 0;
-			/* background: url(images/iconTextbg_right.png) left center no-repeat; */
+			background: url(images/iconTextbg_right.png) left center no-repeat;
 		}
 
 		.desktop_icon_over {
@@ -1407,7 +1405,7 @@
 			}
 
 			return '<li class="desktop_icon" id="' + name + '" path="./app/index.html' + "?" + param + '">' +
-				'<span class="icon"><img src="icon/icon1.png"/></span>' +
+				'<span class="icon"><img src="icon/icon4.png"/></span>' +
 				'<div class="text">' + name +
 				'<div class="right_cron"></div>' +
 				'</div>' +
@@ -1416,7 +1414,7 @@
 
 		//当页面加载完毕执行
 		$(function () {
-			$.get("http://127.0.0.1:81/cgi-bin/xfsconf.exe", function xx(data, status) {
+			$.get("http://192.168.112.131:81/cgi-bin/xfsconf.exe", function xx(data, status) {
 
 				for (var device in data) {
 					$("#deskIcon").append(createDesktopItem(device, data[device]));
