@@ -1,0 +1,2 @@
+2018-06-25
+添加XfsEventHandle.ts文件，cenxfs.promise.ts和cenxfs.ts添加addEventListener和removeEventListener函数，以支持添加特定事件处理函数
