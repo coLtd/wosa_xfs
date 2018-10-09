@@ -9,7 +9,7 @@
  * @param {function(CenXfsApi)} succCallback 初始化成功回调函数
  */
 var CxPons = function(succCallback) {
-  var websocket = new WebSocket('ws://192.168.112.131:4856')
+  var websocket = new WebSocket('ws://192.168.112.131:3856')
 
   websocket.onopen = function() {
     new QWebChannel(websocket, function(channel) {
