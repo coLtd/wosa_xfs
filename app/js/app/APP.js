@@ -27,12 +27,30 @@ Vue.component('vue-communication-list', {
 
 // 通讯参数表单
 Vue.component('vue-communication-params', {
-  props: ['paramslist'],
+  props: ['params', 'callbackfn'],
   template: `
-    <div>
-      <div>yyyy</div>
+    <div class="notification no-top-margin">
+      <div v-for="param in params">
+        <div v-if="param.type === 'Array'">
+          <span>{{ param.name }}：</span>
+          <select name="param.name" v-model="paramsValue">
+            <option v-for="option in param.options" :value="option">{{ option }}</option>
+          </select>
+        </div>
+      </div>
+      <button @click="callbackfn">commited</button>
 		</div>
-	`
+  `,
+  data: function() {
+    return {
+      paramsValue: ''
+    }
+  },
+  watch: {
+    paramsValue: function(v) {
+      this.$emit('update:selected', v)
+    }
+  }
 })
 
 function showMask() {

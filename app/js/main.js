@@ -356,10 +356,20 @@ require([theRequest.Class], function(CLASS) {
   })
 
   // params
-  params = new Vue({
+  inputparams = new Vue({
     el: '#paramslist',
     data: {
-      paramslist: []
+      paramslist: [],
+      inf: null,
+      digit: null,
+      selected: '',
+      callbackfn: null
+    },
+    methods: {
+      committed: function() {
+        console.log(this.callbackfn)
+        this.callbackfn[this.inf](this.digit, this.selected)
+      }
     }
   })
 })
@@ -385,20 +395,22 @@ function GetRequest() {
 function onInfoRequest(inf, CLASS) {
   var digit = CLASS.INF[inf]
   var curparams = null
-  console.log(information)
   if (typeof information == 'object' && typeof information[inf] == 'function') {
     // 如果需要参数在此传递，目前先写一种设备列表
     showMask()
     service
       .WFSPromiseGetInfo(CLASS.INF['WFS_INF_PTR_FORM_LIST'], null, 1000)
       .then(response => {
-        curparams = response
-        insertSuccReocrd(
-          response,
-          'WFSAsyncGetInfo WFS_INF_PTR_FORM_LIST response'
-        )
+        curparams = {}
+        curparams.type = 'Array'
+        curparams.name = 'lpszFormName'
+        curparams.options = response['lpBuffer']
+        inputparams.paramslist.push(curparams)
+        insertSuccReocrd(response, 'WFSAsyncGetInfo lpszFormName response')
         hideMask()
-        information[inf](digit, curparams['lpBuffer'][0])
+        inputparams.inf = inf
+        inputparams.digit = digit
+        inputparams.callbackfn = information
       })
       .catch(err => {
         insertErrRecord(err, tag)
@@ -406,7 +418,6 @@ function onInfoRequest(inf, CLASS) {
       })
     return
   }
-
   var tag = 'WFSAsyncGetInfo ' + inf + ' response'
   if (service) {
     showMask()
