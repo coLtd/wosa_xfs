@@ -359,16 +359,22 @@ require([theRequest.Class], function(CLASS) {
   inputparams = new Vue({
     el: '#paramslist',
     data: {
-      paramslist: [],
-      inf: null,
-      digit: null,
-      selected: '',
-      callbackfn: null
+      paramslist: {},
+      paramsout: null
     },
-    methods: {
-      committed: function() {
-        console.log(this.callbackfn)
-        this.callbackfn[this.inf](this.digit, this.selected)
+    watch: {
+      paramsout: {
+        handler: function(v) {
+          let name = Object.keys(v)[0]
+          let o = v[name]
+          if (!o) return
+          let digit = o.invoke.class['INF'][o.invoke.name]
+          let params = o.curValue
+          if (!params) return
+          let callbackfn = o.invoke.obj[o.invoke.name]
+          callbackfn(digit, params)
+        },
+        deep: true
       }
     }
   })
@@ -393,29 +399,35 @@ function GetRequest() {
  * 用以处理无需参数的info请求
  */
 function onInfoRequest(inf, CLASS) {
+  console.log(inf)
   var digit = CLASS.INF[inf]
   var curparams = null
   if (typeof information == 'object' && typeof information[inf] == 'function') {
-    // 如果需要参数在此传递，目前先写一种设备列表
-    showMask()
-    service
-      .WFSPromiseGetInfo(CLASS.INF['WFS_INF_PTR_FORM_LIST'], null, 1000)
-      .then(response => {
-        curparams = {}
-        curparams.type = 'Array'
-        curparams.name = 'lpszFormName'
-        curparams.options = response['lpBuffer']
-        inputparams.paramslist.push(curparams)
-        insertSuccReocrd(response, 'WFSAsyncGetInfo lpszFormName response')
-        hideMask()
-        inputparams.inf = inf
-        inputparams.digit = digit
-        inputparams.callbackfn = information
-      })
-      .catch(err => {
-        insertErrRecord(err, tag)
-        hideMask()
-      })
+    var pname = information[inf + '_PRE']
+    var pfns = pname['fnlist']
+    inputparams.paramslist = {}
+    for (var i = 0; i < pfns.length; i++) {
+      var fn = pfns[i].name
+      pfns[i].invoke.class = CLASS
+      var dataSchema = {
+        name: pfns[i].data,
+        type: pfns[i].type,
+        data: null,
+        invoke: pfns[i].invoke,
+        curValue: pfns[i].curValue
+      }
+      service
+        .WFSPromiseGetInfo(CLASS.INF[fn], null, 1000)
+        .then(response => {
+          dataSchema.data = response['lpBuffer']
+          dataSchema.curValue = dataSchema.data[0]
+          inputparams.$set(inputparams.paramslist, dataSchema.name, dataSchema)
+          insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fn + ' response')
+        })
+        .catch(err => {
+          insertErrRecord(err, 'WFSAsyncGetInfo ' + fn + ' response')
+        })
+    }
     return
   }
   var tag = 'WFSAsyncGetInfo ' + inf + ' response'

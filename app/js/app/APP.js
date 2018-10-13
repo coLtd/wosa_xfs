@@ -26,29 +26,58 @@ Vue.component('vue-communication-list', {
 })
 
 // 通讯参数表单
+// Vue.component('vue-communication-params', {
+//   props: ['params', 'callbackfn'],
+//   template: `
+//     <div class="notification no-top-margin">
+//       <div v-for="param in params">
+//         <div v-if="param.type === 'Array'">
+//           <span>{{ param.name }}：</span>
+//           <select name="param.name" v-model="paramsValue">
+//             <option v-for="option in param.options" :value="option">{{ option }}</option>
+//           </select>
+//         </div>
+//         <div v-if="param.type === 'html'">
+//           <div v-html="param.dom"></div>
+//         </div>
+//       </div>
+//       <button @click="callbackfn">commited</button>
+// 		</div>
+//   `,
+//   data: function() {
+//     return {
+//       paramsValue: ''
+//     }
+//   },
+//   watch: {
+//     paramsValue: function(v) {
+//       this.$emit('update:selected', v)
+//     }
+//   }
+// })
+
 Vue.component('vue-communication-params', {
-  props: ['params', 'callbackfn'],
+  props: ['paramslist', 'paramsout'],
   template: `
     <div class="notification no-top-margin">
-      <div v-for="param in params">
-        <div v-if="param.type === 'Array'">
-          <span>{{ param.name }}：</span>
-          <select name="param.name" v-model="paramsValue">
-            <option v-for="option in param.options" :value="option">{{ option }}</option>
+      <div v-if="paramslist">
+        <template v-for="p in Object.keys(paramslist)">
+        <div v-if="paramslist[p].type === 'array'">
+          <span>{{p}}：</span>
+          <select :name="p" v-model="paramslist[p].curValue">
+            <option v-for="name in paramslist[p].data" :value="name">{{ name }}</option>
           </select>
         </div>
+        </template>
       </div>
-      <button @click="callbackfn">commited</button>
 		</div>
   `,
-  data: function() {
-    return {
-      paramsValue: ''
-    }
-  },
   watch: {
-    paramsValue: function(v) {
-      this.$emit('update:selected', v)
+    paramslist: {
+      handler: function(v) {
+        this.$emit('update:paramsout', v)
+      },
+      deep: true
     }
   }
 })
