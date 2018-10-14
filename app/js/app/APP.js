@@ -62,11 +62,11 @@ function watchSetter(targetName, props) {
     console.log(conf)
     r[conf.prop] = {
       handler: function(val) {
-        if (!this[targetName]) return
+        // if (!this[targetName]) return
         // this[targetName][conf.method || `set${capitalize(conf.prop)}`](val)
         console.log(val)
       },
-      deep: !!conf.deep
+      deep: true
     }
     return r
   }, {})
@@ -87,11 +87,7 @@ Vue.component('vue-communication-params', {
         </template>
       </div>
 		</div>
-  `,
-  data: {},
-  watch: {
-    ...watchSetter(this.paramslist, Object.keys(this.paramslist))
-  }
+  `
 })
 
 function showMask() {

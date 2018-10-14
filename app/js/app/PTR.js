@@ -40,57 +40,55 @@ var information
           }
         }
       }
-    }
-  }
-
-  _this.WFS_INF_PTR_QUERY_FORM_PRE = {
-    name: 'WFS_INF_PTR_FORM_LIST',
-    data: 'lpszFormName',
-    type: 'array',
-    curValue: null,
-    class: null,
-    invoke: {
-      name: 'WFS_INF_PTR_QUERY_FORM',
-      params: ['lpszFormName'],
-      paramstype: 'string',
-      obj: info
-    }
-  }
-  _this.WFS_INF_PTR_QUERY_MEDIA_PRE = {
-    name: 'WFS_INF_PTR_MEDIA_LIST',
-    data: 'lpszMediaName',
-    type: 'array',
-    curValue: null,
-    class: null,
-    invoke: {
-      name: 'WFS_INF_PTR_QUERY_MEDIA',
-      params: ['lpszMediaName'],
-      paramstype: 'string',
-      obj: info
-    }
-  }
-  _this.WFS_INF_PTR_QUERY_FIELD_PRE = {
-    name: 'WFS_INF_PTR_FORM_LIST',
-    data: 'lpszFormName',
-    type: 'array',
-    curValue: null,
-    class: null,
-    invoke: {
-      name: 'WFS_INF_PTR_QUERY_FORM',
-      params: ['lpszFormName'],
-      paramstype: 'string',
-      obj: info
     },
-    response: {
-      name: 'lpszFields',
-      type: 'array',
-      data: null,
-      curValue: null,
-      invoke: {
-        name: 'WFS_INF_PTR_QUERY_FIELD',
-        params: ['lpszFormName', 'lpszFields'],
-        paramstype: 'json',
-        obj: info
+    WFS_INF_PTR_QUERY_MEDIA: {
+      data: {
+        lpszMediaName: {
+          type: 'array',
+          options: [],
+          value: null
+        }
+      },
+      methods: {
+        entry: 'lpszMediaName',
+        lpszMediaName: {
+          name: 'WFS_INF_PTR_MEDIA_LIST',
+          param: false,
+          paramRef: null,
+          output: 'lpBuffer',
+          outputRef: 'lpszMediaName',
+          invoke: {
+            name: 'WFS_INF_PTR_QUERY_MEDIA',
+            param: true,
+            paramType: 'string',
+            paramRef: 'lpszMediaName'
+          }
+        }
+      }
+    },
+    WFS_INF_PTR_QUERY_FORM: {
+      data: {
+        lpszFormName: {
+          type: 'array',
+          options: [],
+          value: null
+        }
+      },
+      methods: {
+        entry: 'lpszFormName',
+        lpszFormName: {
+          name: 'WFS_INF_PTR_FORM_LIST',
+          param: false,
+          paramRef: null,
+          output: 'lpBuffer',
+          outputRef: 'lpszFormName',
+          invoke: {
+            name: 'WFS_INF_PTR_QUERY_FORM',
+            param: true,
+            paramType: 'string',
+            paramRef: 'lpszFormName'
+          }
+        }
       }
     }
   }

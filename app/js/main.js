@@ -361,7 +361,6 @@ require([theRequest.Class], function(CLASS) {
     data: {
       paramslist: {}
     },
-    watch: {},
     methods: {}
   })
 })
@@ -400,6 +399,12 @@ function onInfoRequest(inf, CLASS) {
             } else {
               inputparams.paramslist[fn]['value'] = response[output]
             }
+            // 绑定监听器
+            let levelOneWatch = 'paramslist.' + fn + '.value'
+            inputparams.$watch(levelOneWatch, function(v) {
+              console.log('level one')
+              console.log(v)
+            })
           }
           insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fnname + ' response')
           let invoke = fnsObj[fn]['invoke']
@@ -437,12 +442,19 @@ function onInfoRequest(inf, CLASS) {
                     inputparams.paramslist[invoke.outputRef]['value'] =
                       response['lpBuffer'][invoke.outputRef]
                   }
+                  // 绑定监听器
+                  let levelTwoWatch =
+                    'paramslist.' + invoke.outputRef + '.value'
+                  inputparams.$watch(levelTwoWatch, function(v) {
+                    console.log('level two')
+                    console.log(v)
+                  })
                 }
                 insertSuccReocrd(
                   response,
                   'WFSAsyncGetInfo ' + invoke.name + ' response'
                 )
-                invoke = fnsObj[fn]['invoke']['invoke']
+                invoke = fnsObj[fn]['invoke']['invoke'] || null
                 if (invoke) {
                   digit = CLASS.INF[invoke.name]
                   params = null
@@ -461,23 +473,24 @@ function onInfoRequest(inf, CLASS) {
                       // json数组
                     }
                   }
+                  information[inf](digit, params)
+                  // console.log(params)
+                  // console.log(CLASS.INF[invoke.name])
+                  // service
+                  //   .WFSPromiseGetInfo(digit, params, 1000)
+                  //   .then(response => {
+                  //     insertSuccReocrd(
+                  //       response,
+                  //       'WFSAsyncGetInfo ' + invoke.name + ' response'
+                  //     )
+                  //   })
+                  //   .catch(err => {
+                  //     insertErrRecord(
+                  //       err,
+                  //       'WFSAsyncGetInfo ' + invoke.name + ' response'
+                  //     )
+                  //   })
                 }
-                // console.log(params)
-                // console.log(CLASS.INF[invoke.name])
-                service
-                  .WFSPromiseGetInfo(digit, params, 1000)
-                  .then(response => {
-                    insertSuccReocrd(
-                      response,
-                      'WFSAsyncGetInfo ' + invoke.name + ' response'
-                    )
-                  })
-                  .catch(err => {
-                    insertErrRecord(
-                      err,
-                      'WFSAsyncGetInfo ' + invoke.name + ' response'
-                    )
-                  })
               })
               .catch(err => {
                 insertErrRecord(
