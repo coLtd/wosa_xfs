@@ -56,29 +56,41 @@ Vue.component('vue-communication-list', {
 //   }
 // })
 
+function watchSetter(targetName, props) {
+  return props.reduce((r, prop) => {
+    let conf = typeof prop === 'string' ? { prop } : prop
+    console.log(conf)
+    r[conf.prop] = {
+      handler: function(val) {
+        if (!this[targetName]) return
+        // this[targetName][conf.method || `set${capitalize(conf.prop)}`](val)
+        console.log(val)
+      },
+      deep: !!conf.deep
+    }
+    return r
+  }, {})
+}
+
 Vue.component('vue-communication-params', {
-  props: ['paramslist', 'paramsout', 'responseRef'],
+  props: ['paramslist'],
   template: `
     <div class="notification no-top-margin">
       <div v-if="paramslist">
         <template v-for="p in Object.keys(paramslist)">
           <div v-if="paramslist[p].type === 'array'">
             <span>{{p}}：</span>
-            <select :name="p" v-model="paramslist[p].curValue">
-              <option v-for="name in paramslist[p].data" :value="name">{{ name }}</option>
+            <select :name="p" v-model="paramslist[p].value">
+              <option v-for="name in paramslist[p].options" :value="name">{{ name }}</option>
             </select>
           </div>
         </template>
       </div>
 		</div>
   `,
+  data: {},
   watch: {
-    paramslist: {
-      handler: function(v) {
-        this.$emit('update:paramsout', v)
-      },
-      deep: true
-    }
+    ...watchSetter(this.paramslist, Object.keys(this.paramslist))
   }
 })
 

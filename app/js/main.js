@@ -359,58 +359,10 @@ require([theRequest.Class], function(CLASS) {
   inputparams = new Vue({
     el: '#paramslist',
     data: {
-      paramslist: {},
-      paramsout: null,
-      responseRef: {}
+      paramslist: {}
     },
-    watch: {
-      paramsout: {
-        handler: function(v) {
-          let name = Object.keys(v)[0]
-          let o = v[name]
-          if (!o) return
-          let digit = o.class['INF'][o.invoke.name]
-          let params = o.curValue
-          if (!params) return
-          // 如果需要返回值，手动处理
-          if (o && o.hasOwnProperty('response')) {
-            let resobj = o['response']
-            service
-              .WFSPromiseGetInfo(digit, params, 1000)
-              .then(response => {
-                Object.assign(resobj, {
-                  data: response['lpBuffer'][resobj.name],
-                  curValue: response['lpBuffer'][resobj.name][0]
-                })
-                inputparams.$set(inputparams.responseRef, resobj.name, resobj)
-                insertSuccReocrd(
-                  response,
-                  'WFSAsyncGetInfo ' + o.invoke.name + ' response'
-                )
-                // 删除属性
-                delete v[name]['response']
-              })
-              .catch(err => {
-                insertErrRecord(
-                  err,
-                  'WFSAsyncGetInfo ' + o.invoke.name + ' response'
-                )
-              })
-          } else {
-            console.log('====')
-            let callbackfn = o.invoke.obj[o.invoke.name]
-            callbackfn(digit, params)
-          }
-        },
-        deep: true
-      },
-      responseRef: {
-        handler: function(v) {
-          console.log(v)
-        },
-        deep: true
-      }
-    }
+    watch: {},
+    methods: {}
   })
 })
 
@@ -428,41 +380,117 @@ function GetRequest() {
   return theRequest
 }
 
-/**
- * info 请求通用处理函数
- * 用以处理无需参数的info请求
- */
 function onInfoRequest(inf, CLASS) {
-  console.log(inf)
-  var digit = CLASS.INF[inf]
-  var curparams = null
   if (typeof information == 'object' && typeof information[inf] == 'function') {
-    var pa = information[inf + '_PRE']
-    inputparams.paramslist = {}
-    var fn = pa.name
-    pa.class = CLASS
-    var dataSchema = {
-      name: pa.data,
-      type: pa.type,
-      data: null,
-      invoke: pa.invoke,
-      curValue: pa.curValue,
-      class: pa.class
+    let pa = information['render'][inf]
+    inputparams.paramslist = pa.data
+    let fnsObj = pa.methods
+    if (fnsObj) {
+      let fn = fnsObj['entry']
+      let fnname = fnsObj[fn]['name']
+      let digit = CLASS.INF[fnname]
+      let output = fnsObj[fn]['output']
+      service
+        .WFSPromiseGetInfo(digit, null, 1000)
+        .then(response => {
+          if (output) {
+            if (inputparams.paramslist[fn]['type'] === 'array') {
+              inputparams.paramslist[fn]['options'] = response[output]
+              inputparams.paramslist[fn]['value'] = response[output][0]
+            } else {
+              inputparams.paramslist[fn]['value'] = response[output]
+            }
+          }
+          insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fnname + ' response')
+          let invoke = fnsObj[fn]['invoke']
+          if (invoke) {
+            let digit = CLASS.INF[invoke.name]
+            let params = null
+            if (invoke['param']) {
+              if (invoke['paramType'] === 'string') {
+                // 字符串
+                params = inputparams.paramslist[invoke['paramRef']]['value']
+              } else if (invoke['paramType'] === 'json') {
+                // json
+                params = {}
+                invoke['paramRef'].map(p => {
+                  params[p] = inputparams.paramslist[p]['value']
+                })
+              } else {
+                // json数组
+              }
+            }
+            // console.log(params)
+            // console.log(CLASS.INF[invoke.name])
+            service
+              .WFSPromiseGetInfo(digit, params, 1000)
+              .then(response => {
+                if (invoke.outputRef) {
+                  if (
+                    inputparams.paramslist[invoke.outputRef]['type'] === 'array'
+                  ) {
+                    inputparams.paramslist[invoke.outputRef]['options'] =
+                      response['lpBuffer'][invoke.outputRef]
+                    inputparams.paramslist[invoke.outputRef]['value'] =
+                      response['lpBuffer'][invoke.outputRef][0]
+                  } else {
+                    inputparams.paramslist[invoke.outputRef]['value'] =
+                      response['lpBuffer'][invoke.outputRef]
+                  }
+                }
+                insertSuccReocrd(
+                  response,
+                  'WFSAsyncGetInfo ' + invoke.name + ' response'
+                )
+                invoke = fnsObj[fn]['invoke']['invoke']
+                if (invoke) {
+                  digit = CLASS.INF[invoke.name]
+                  params = null
+                  if (invoke['param']) {
+                    if (invoke['paramType'] === 'string') {
+                      // 字符串
+                      params =
+                        inputparams.paramslist[invoke['paramRef']]['value']
+                    } else if (invoke['paramType'] === 'json') {
+                      // json
+                      params = {}
+                      invoke['paramRef'].map(p => {
+                        params[p] = inputparams.paramslist[p]['value']
+                      })
+                    } else {
+                      // json数组
+                    }
+                  }
+                }
+                // console.log(params)
+                // console.log(CLASS.INF[invoke.name])
+                service
+                  .WFSPromiseGetInfo(digit, params, 1000)
+                  .then(response => {
+                    insertSuccReocrd(
+                      response,
+                      'WFSAsyncGetInfo ' + invoke.name + ' response'
+                    )
+                  })
+                  .catch(err => {
+                    insertErrRecord(
+                      err,
+                      'WFSAsyncGetInfo ' + invoke.name + ' response'
+                    )
+                  })
+              })
+              .catch(err => {
+                insertErrRecord(
+                  err,
+                  'WFSAsyncGetInfo ' + invoke.name + ' response'
+                )
+              })
+          }
+        })
+        .catch(err => {
+          insertErrRecord(err, 'WFSAsyncGetInfo ' + invoke.name + ' response')
+        })
     }
-    pa.hasOwnProperty('response')
-      ? Object.assign(dataSchema, { response: pa.response })
-      : null
-    service
-      .WFSPromiseGetInfo(CLASS.INF[fn], null, 1000)
-      .then(response => {
-        dataSchema.data = response['lpBuffer']
-        dataSchema.curValue = dataSchema.data[0]
-        inputparams.$set(inputparams.paramslist, dataSchema.name, dataSchema)
-        insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fn + ' response')
-      })
-      .catch(err => {
-        insertErrRecord(err, 'WFSAsyncGetInfo ' + fn + ' response')
-      })
     return
   }
   var tag = 'WFSAsyncGetInfo ' + inf + ' response'
@@ -481,7 +509,6 @@ function onInfoRequest(inf, CLASS) {
   } else {
   }
 }
-
 /**
  * cmd 请求通用处理函数
  * 用以处理无需参数的cmd请求
