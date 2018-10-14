@@ -360,7 +360,8 @@ require([theRequest.Class], function(CLASS) {
     el: '#paramslist',
     data: {
       paramslist: {},
-      paramsout: null
+      paramsout: null,
+      responseRef: {}
     },
     watch: {
       paramsout: {
@@ -368,11 +369,44 @@ require([theRequest.Class], function(CLASS) {
           let name = Object.keys(v)[0]
           let o = v[name]
           if (!o) return
-          let digit = o.invoke.class['INF'][o.invoke.name]
+          let digit = o.class['INF'][o.invoke.name]
           let params = o.curValue
           if (!params) return
-          let callbackfn = o.invoke.obj[o.invoke.name]
-          callbackfn(digit, params)
+          // 如果需要返回值，手动处理
+          if (o && o.hasOwnProperty('response')) {
+            let resobj = o['response']
+            service
+              .WFSPromiseGetInfo(digit, params, 1000)
+              .then(response => {
+                Object.assign(resobj, {
+                  data: response['lpBuffer'][resobj.name],
+                  curValue: response['lpBuffer'][resobj.name][0]
+                })
+                inputparams.$set(inputparams.responseRef, resobj.name, resobj)
+                insertSuccReocrd(
+                  response,
+                  'WFSAsyncGetInfo ' + o.invoke.name + ' response'
+                )
+                // 删除属性
+                delete v[name]['response']
+              })
+              .catch(err => {
+                insertErrRecord(
+                  err,
+                  'WFSAsyncGetInfo ' + o.invoke.name + ' response'
+                )
+              })
+          } else {
+            console.log('====')
+            let callbackfn = o.invoke.obj[o.invoke.name]
+            callbackfn(digit, params)
+          }
+        },
+        deep: true
+      },
+      responseRef: {
+        handler: function(v) {
+          console.log(v)
         },
         deep: true
       }
@@ -403,31 +437,32 @@ function onInfoRequest(inf, CLASS) {
   var digit = CLASS.INF[inf]
   var curparams = null
   if (typeof information == 'object' && typeof information[inf] == 'function') {
-    var pname = information[inf + '_PRE']
-    var pfns = pname['fnlist']
+    var pa = information[inf + '_PRE']
     inputparams.paramslist = {}
-    for (var i = 0; i < pfns.length; i++) {
-      var fn = pfns[i].name
-      pfns[i].invoke.class = CLASS
-      var dataSchema = {
-        name: pfns[i].data,
-        type: pfns[i].type,
-        data: null,
-        invoke: pfns[i].invoke,
-        curValue: pfns[i].curValue
-      }
-      service
-        .WFSPromiseGetInfo(CLASS.INF[fn], null, 1000)
-        .then(response => {
-          dataSchema.data = response['lpBuffer']
-          dataSchema.curValue = dataSchema.data[0]
-          inputparams.$set(inputparams.paramslist, dataSchema.name, dataSchema)
-          insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fn + ' response')
-        })
-        .catch(err => {
-          insertErrRecord(err, 'WFSAsyncGetInfo ' + fn + ' response')
-        })
+    var fn = pa.name
+    pa.class = CLASS
+    var dataSchema = {
+      name: pa.data,
+      type: pa.type,
+      data: null,
+      invoke: pa.invoke,
+      curValue: pa.curValue,
+      class: pa.class
     }
+    pa.hasOwnProperty('response')
+      ? Object.assign(dataSchema, { response: pa.response })
+      : null
+    service
+      .WFSPromiseGetInfo(CLASS.INF[fn], null, 1000)
+      .then(response => {
+        dataSchema.data = response['lpBuffer']
+        dataSchema.curValue = dataSchema.data[0]
+        inputparams.$set(inputparams.paramslist, dataSchema.name, dataSchema)
+        insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fn + ' response')
+      })
+      .catch(err => {
+        insertErrRecord(err, 'WFSAsyncGetInfo ' + fn + ' response')
+      })
     return
   }
   var tag = 'WFSAsyncGetInfo ' + inf + ' response'

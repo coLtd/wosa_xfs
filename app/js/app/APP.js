@@ -57,17 +57,17 @@ Vue.component('vue-communication-list', {
 // })
 
 Vue.component('vue-communication-params', {
-  props: ['paramslist', 'paramsout'],
+  props: ['paramslist', 'paramsout', 'responseRef'],
   template: `
     <div class="notification no-top-margin">
       <div v-if="paramslist">
         <template v-for="p in Object.keys(paramslist)">
-        <div v-if="paramslist[p].type === 'array'">
-          <span>{{p}}：</span>
-          <select :name="p" v-model="paramslist[p].curValue">
-            <option v-for="name in paramslist[p].data" :value="name">{{ name }}</option>
-          </select>
-        </div>
+          <div v-if="paramslist[p].type === 'array'">
+            <span>{{p}}：</span>
+            <select :name="p" v-model="paramslist[p].curValue">
+              <option v-for="name in paramslist[p].data" :value="name">{{ name }}</option>
+            </select>
+          </div>
         </template>
       </div>
 		</div>
