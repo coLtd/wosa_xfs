@@ -9,12 +9,12 @@ var information
         lpszFormName: {
           type: 'array',
           options: [],
-          value: null
+          value: 0
         },
         lpszFields: {
           type: 'array',
           options: [],
-          value: null
+          value: 0
         }
       },
       methods: {
@@ -31,11 +31,15 @@ var information
             paramType: 'string',
             paramRef: 'lpszFormName',
             outputRef: 'lpszFields',
+            output: 'lpBuffer.lpszFields',
+            watch: 'lpszFormName',
             invoke: {
               name: 'WFS_INF_PTR_QUERY_FIELD',
               param: true,
               paramType: 'json',
-              paramRef: ['lpszFormName', 'lpszFields']
+              paramRef: ['lpszFormName', 'lpszFields'],
+              watch: 'lpszFields',
+              lastInvoke: true
             }
           }
         }

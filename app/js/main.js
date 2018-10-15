@@ -379,6 +379,70 @@ function GetRequest() {
   return theRequest
 }
 
+function setWather(obj, cl) {
+  let invoke = obj['invoke']
+  // 一级监听器
+  if (invoke) {
+    let digit = cl['INF'][invoke.name]
+    let params = null
+    // 绑定监听器
+    if (invoke.hasOwnProperty('watch')) {
+      let watchname = 'paramslist.' + invoke['watch'] + '.value'
+      inputparams.$watch(watchname, function(v) {
+        let names = watchname.split('.')
+        let curValueName = names[names.length - 1]
+        if (invoke['param']) {
+          if (invoke['paramType'] === 'string') {
+            // 字符串
+            params = inputparams.paramslist[invoke['paramRef']]['value']
+          } else if (invoke['paramType'] === 'json') {
+            // json
+            params = {}
+            invoke['paramRef'].map(p => {
+              p === curValueName
+                ? (params[p] = v)
+                : (params[p] = inputparams.paramslist[p]['value'])
+            })
+          } else {
+            // json数组
+          }
+        }
+        console.log(invoke.name)
+        console.log(params)
+        service
+          .WFSPromiseGetInfo(digit, params, 1000)
+          .then(response => {
+            if (invoke.outputRef) {
+              let out = invoke.output.split('.')
+              out.length > 1
+                ? (out = response[out[0]][out[1]])
+                : (out = response[out[0]])
+              if (
+                inputparams.paramslist[invoke.outputRef]['type'] === 'array'
+              ) {
+                inputparams.paramslist[invoke.outputRef]['options'] = out
+                inputparams.paramslist[invoke.outputRef]['value'] = out[0]
+              } else {
+                inputparams.paramslist[invoke.outputRef]['value'] = out
+              }
+            }
+            insertSuccReocrd(
+              response,
+              'WFSAsyncGetInfo ' + invoke.name + ' response'
+            )
+          })
+          .catch(err => {
+            insertErrRecord(err, 'WFSAsyncGetInfo ' + invoke.name + ' response')
+          })
+      })
+    }
+  }
+  // 二级监听器
+  if (invoke.hasOwnProperty('invoke')) {
+    setWather(invoke, cl)
+  }
+}
+
 function onInfoRequest(inf, CLASS) {
   if (typeof information == 'object' && typeof information[inf] == 'function') {
     let pa = information['render'][inf]
@@ -389,6 +453,8 @@ function onInfoRequest(inf, CLASS) {
       let fnname = fnsObj[fn]['name']
       let digit = CLASS.INF[fnname]
       let output = fnsObj[fn]['output']
+      // 事先设置监听器，兵马未动，粮草先行！
+      setWather(fnsObj[fn], CLASS)
       service
         .WFSPromiseGetInfo(digit, null, 1000)
         .then(response => {
@@ -399,106 +465,8 @@ function onInfoRequest(inf, CLASS) {
             } else {
               inputparams.paramslist[fn]['value'] = response[output]
             }
-            // 绑定监听器
-            let levelOneWatch = 'paramslist.' + fn + '.value'
-            inputparams.$watch(levelOneWatch, function(v) {
-              console.log('level one')
-              console.log(v)
-            })
           }
           insertSuccReocrd(response, 'WFSAsyncGetInfo ' + fnname + ' response')
-          let invoke = fnsObj[fn]['invoke']
-          if (invoke) {
-            let digit = CLASS.INF[invoke.name]
-            let params = null
-            if (invoke['param']) {
-              if (invoke['paramType'] === 'string') {
-                // 字符串
-                params = inputparams.paramslist[invoke['paramRef']]['value']
-              } else if (invoke['paramType'] === 'json') {
-                // json
-                params = {}
-                invoke['paramRef'].map(p => {
-                  params[p] = inputparams.paramslist[p]['value']
-                })
-              } else {
-                // json数组
-              }
-            }
-            // console.log(params)
-            // console.log(CLASS.INF[invoke.name])
-            service
-              .WFSPromiseGetInfo(digit, params, 1000)
-              .then(response => {
-                if (invoke.outputRef) {
-                  if (
-                    inputparams.paramslist[invoke.outputRef]['type'] === 'array'
-                  ) {
-                    inputparams.paramslist[invoke.outputRef]['options'] =
-                      response['lpBuffer'][invoke.outputRef]
-                    inputparams.paramslist[invoke.outputRef]['value'] =
-                      response['lpBuffer'][invoke.outputRef][0]
-                  } else {
-                    inputparams.paramslist[invoke.outputRef]['value'] =
-                      response['lpBuffer'][invoke.outputRef]
-                  }
-                  // 绑定监听器
-                  let levelTwoWatch =
-                    'paramslist.' + invoke.outputRef + '.value'
-                  inputparams.$watch(levelTwoWatch, function(v) {
-                    console.log('level two')
-                    console.log(v)
-                  })
-                }
-                insertSuccReocrd(
-                  response,
-                  'WFSAsyncGetInfo ' + invoke.name + ' response'
-                )
-                invoke = fnsObj[fn]['invoke']['invoke'] || null
-                if (invoke) {
-                  digit = CLASS.INF[invoke.name]
-                  params = null
-                  if (invoke['param']) {
-                    if (invoke['paramType'] === 'string') {
-                      // 字符串
-                      params =
-                        inputparams.paramslist[invoke['paramRef']]['value']
-                    } else if (invoke['paramType'] === 'json') {
-                      // json
-                      params = {}
-                      invoke['paramRef'].map(p => {
-                        params[p] = inputparams.paramslist[p]['value']
-                      })
-                    } else {
-                      // json数组
-                    }
-                  }
-                  information[inf](digit, params)
-                  // console.log(params)
-                  // console.log(CLASS.INF[invoke.name])
-                  // service
-                  //   .WFSPromiseGetInfo(digit, params, 1000)
-                  //   .then(response => {
-                  //     insertSuccReocrd(
-                  //       response,
-                  //       'WFSAsyncGetInfo ' + invoke.name + ' response'
-                  //     )
-                  //   })
-                  //   .catch(err => {
-                  //     insertErrRecord(
-                  //       err,
-                  //       'WFSAsyncGetInfo ' + invoke.name + ' response'
-                  //     )
-                  //   })
-                }
-              })
-              .catch(err => {
-                insertErrRecord(
-                  err,
-                  'WFSAsyncGetInfo ' + invoke.name + ' response'
-                )
-              })
-          }
         })
         .catch(err => {
           insertErrRecord(err, 'WFSAsyncGetInfo ' + invoke.name + ' response')
@@ -510,7 +478,7 @@ function onInfoRequest(inf, CLASS) {
   if (service) {
     showMask()
     service
-      .WFSPromiseGetInfo(digit, null, 1000)
+      .WFSPromiseGetInfo(CLASS.INF[inf], null, 1000)
       .then(response => {
         insertSuccReocrd(response, tag)
         hideMask()
