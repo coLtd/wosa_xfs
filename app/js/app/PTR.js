@@ -65,7 +65,8 @@ var information
             name: 'WFS_INF_PTR_QUERY_MEDIA',
             param: true,
             paramType: 'string',
-            paramRef: 'lpszMediaName'
+            paramRef: 'lpszMediaName',
+            watch: 'lpszMediaName'
           }
         }
       }
@@ -90,7 +91,8 @@ var information
             name: 'WFS_INF_PTR_QUERY_FORM',
             param: true,
             paramType: 'string',
-            paramRef: 'lpszFormName'
+            paramRef: 'lpszFormName',
+            watch: 'lpszFormName'
           }
         }
       }

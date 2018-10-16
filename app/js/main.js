@@ -406,34 +406,39 @@ function setWather(obj, cl) {
           } else {
             // json数组
           }
+          console.log(invoke.name)
+          console.log(params)
+          if (params) {
+            service
+              .WFSPromiseGetInfo(digit, params, 1000)
+              .then(response => {
+                if (invoke.outputRef) {
+                  let out = invoke.output.split('.')
+                  out.length > 1
+                    ? (out = response[out[0]][out[1]])
+                    : (out = response[out[0]])
+                  if (
+                    inputparams.paramslist[invoke.outputRef]['type'] === 'array'
+                  ) {
+                    inputparams.paramslist[invoke.outputRef]['options'] = out
+                    inputparams.paramslist[invoke.outputRef]['value'] = out[0]
+                  } else {
+                    inputparams.paramslist[invoke.outputRef]['value'] = out
+                  }
+                }
+                insertSuccReocrd(
+                  response,
+                  'WFSAsyncGetInfo ' + invoke.name + ' response'
+                )
+              })
+              .catch(err => {
+                insertErrRecord(
+                  err,
+                  'WFSAsyncGetInfo ' + invoke.name + ' response'
+                )
+              })
+          }
         }
-        console.log(invoke.name)
-        console.log(params)
-        service
-          .WFSPromiseGetInfo(digit, params, 1000)
-          .then(response => {
-            if (invoke.outputRef) {
-              let out = invoke.output.split('.')
-              out.length > 1
-                ? (out = response[out[0]][out[1]])
-                : (out = response[out[0]])
-              if (
-                inputparams.paramslist[invoke.outputRef]['type'] === 'array'
-              ) {
-                inputparams.paramslist[invoke.outputRef]['options'] = out
-                inputparams.paramslist[invoke.outputRef]['value'] = out[0]
-              } else {
-                inputparams.paramslist[invoke.outputRef]['value'] = out
-              }
-            }
-            insertSuccReocrd(
-              response,
-              'WFSAsyncGetInfo ' + invoke.name + ' response'
-            )
-          })
-          .catch(err => {
-            insertErrRecord(err, 'WFSAsyncGetInfo ' + invoke.name + ' response')
-          })
       })
     }
   }

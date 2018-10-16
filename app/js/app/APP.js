@@ -15,7 +15,7 @@ Vue.component('vue-communication-list', {
   props: ['records'],
   template: `
     <div>
-        <div v-for="record in records" class="notification no-top-margin">
+        <div v-for="record in records" class="notification" style="margin-top: 0px;">
             <div :class="record.style">
                 <span>{{ record.time }}</span> <i><{{ record.type }}></i>
             </div>
@@ -25,67 +25,18 @@ Vue.component('vue-communication-list', {
     `
 })
 
-// 通讯参数表单
-// Vue.component('vue-communication-params', {
-//   props: ['params', 'callbackfn'],
-//   template: `
-//     <div class="notification no-top-margin">
-//       <div v-for="param in params">
-//         <div v-if="param.type === 'Array'">
-//           <span>{{ param.name }}：</span>
-//           <select name="param.name" v-model="paramsValue">
-//             <option v-for="option in param.options" :value="option">{{ option }}</option>
-//           </select>
-//         </div>
-//         <div v-if="param.type === 'html'">
-//           <div v-html="param.dom"></div>
-//         </div>
-//       </div>
-//       <button @click="callbackfn">commited</button>
-// 		</div>
-//   `,
-//   data: function() {
-//     return {
-//       paramsValue: ''
-//     }
-//   },
-//   watch: {
-//     paramsValue: function(v) {
-//       this.$emit('update:selected', v)
-//     }
-//   }
-// })
-
-function watchSetter(targetName, props) {
-  return props.reduce((r, prop) => {
-    let conf = typeof prop === 'string' ? { prop } : prop
-    console.log(conf)
-    r[conf.prop] = {
-      handler: function(val) {
-        // if (!this[targetName]) return
-        // this[targetName][conf.method || `set${capitalize(conf.prop)}`](val)
-        console.log(val)
-      },
-      deep: true
-    }
-    return r
-  }, {})
-}
-
 Vue.component('vue-communication-params', {
   props: ['paramslist'],
   template: `
-    <div class="notification no-top-margin">
-      <div v-if="paramslist">
-        <template v-for="p in Object.keys(paramslist)">
-          <div v-if="paramslist[p].type === 'array'">
-            <span>{{p}}：</span>
-            <select :name="p" v-model="paramslist[p].value">
-              <option v-for="name in paramslist[p].options" :value="name">{{ name }}</option>
-            </select>
-          </div>
-        </template>
-      </div>
+    <div class="notification"  style="margin-top: 0px;" v-if="Object.keys(paramslist).length > 0">
+      <template v-for="p in Object.keys(paramslist)">
+        <div v-if="paramslist[p].type === 'array'">
+          <span>{{p}}：</span>
+          <select :name="p" v-model="paramslist[p].value">
+            <option v-for="name in paramslist[p].options" :value="name">{{ name }}</option>
+          </select>
+        </div>
+      </template>
 		</div>
   `
 })
