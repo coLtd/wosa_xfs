@@ -389,6 +389,7 @@ function setWather(obj, cl) {
     if (invoke.hasOwnProperty('watch')) {
       let watchname = 'paramslist.' + invoke['watch'] + '.value'
       inputparams.$watch(watchname, function(v) {
+        if (!v) return
         let names = watchname.split('.')
         let curValueName = names[names.length - 1]
         if (invoke['param']) {
@@ -449,6 +450,8 @@ function setWather(obj, cl) {
 }
 
 function onInfoRequest(inf, CLASS) {
+  // 清空参数数据缓冲区, 同时取消监听器
+  inputparams.paramslist = {}
   if (typeof information == 'object' && typeof information[inf] == 'function') {
     let pa = information['render'][inf]
     inputparams.paramslist = pa.data

@@ -30,11 +30,11 @@ Vue.component('vue-communication-params', {
   template: `
     <div class="notification"  style="margin-top: 0px;" v-if="Object.keys(paramslist).length > 0">
       <template v-for="p in Object.keys(paramslist)">
-        <div v-if="paramslist[p].type === 'array'">
-          <span>{{p}}：</span>
-          <select :name="p" v-model="paramslist[p].value">
-            <option v-for="name in paramslist[p].options" :value="name">{{ name }}</option>
-          </select>
+        <div v-if="paramslist[p].type === 'array'" style="margin-top: 2px;">
+            <span>{{p}}：</span>
+            <select :name="p" v-model="paramslist[p].value">
+              <option v-for="name in paramslist[p].options" :value="name">{{ name }}</option>
+            </select>
         </div>
       </template>
 		</div>
